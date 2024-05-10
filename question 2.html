@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Falling Letters Game</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #fff;
+        }
+
+        .falling-letter {
+            position: absolute;
+            font-size: 40px;
+            color: #000;
+        }
+
+        #press-indicator {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background-color: #808080; 
+        }
+
+        #score {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            font-size: 20px;
+        }
+
+        #timer {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="press-indicator"></div>
+    <div id="score">Score: 0</div>
+    <div id="timer">Time: 30</div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var container = document.body;
+            var pressIndicator = document.getElementById('press-indicator');
+            var scoreDisplay = document.getElementById('score');
+            var timerDisplay = document.getElementById('timer');
+            var fallingSpeed = 2000; // This is how the milliseconds to fall from top to bottom
+            var frequency = 2000; // This is how the milliseconds  will be between falling letters
+            var letters = 'abcdefghijklmnopqrstuvwxyz';
+            var score = 0;
+            var gameDuration = 30; // This is the amount seconds on the timer
+            var timer;
+
+            function createFallingLetter() {
+                let letter = letters[Math.floor(Math.random() * letters.length)];
+                let x = Math.random() * window.innerWidth;
+                let letterElement = document.createElement('div');
+                letterElement.innerText = letter;
+                letterElement.className = 'falling-letter';
+                letterElement.style.left = x + 'px';
+                container.appendChild(letterElement);
+
+            
+                let animation = letterElement.animate(
+                    [
+                        { transform: 'translateY(0)' },
+                        { transform: `translateY(${window.innerHeight}px)` }
+                    ],
+                    {
+                        duration: fallingSpeed,
+                        easing: 'linear'
+                    }
+                );
+
+                // This should remove the letter when animation is complete
+                animation.onfinish = function () {
+                    letterElement.remove();
+                };
+
+                // This will check user input when the letter reaches the bottom
+                setTimeout(function () {
+                    checkUserInput(letter, letterElement);
+                }, fallingSpeed - 200); // This will check a bit earlier to allow some time for user input
+            }
+
+            function checkUserInput(expectedLetter, element) {
+                window.addEventListener('keydown', function (event) {
+                    let pressedLetter = String.fromCharCode(event.keyCode).toLowerCase();
+
+                    if (pressedLetter === expectedLetter) {
+                        // This will correct key pressed
+                        score++;
+                        pressIndicator.style.backgroundColor = '#8cff66'; // Green flash showing that the answer is correct
+                        updateScore();
+                        increaseFallingSpeed();
+                    } else {
+                        // This will display the wrong key pressed
+                        pressIndicator.style.backgroundColor = '#ff6666'; // Red flash showing that the answer is incorrect
+                    }
+
+                    // This will remove the letter element
+                    element.remove();
+
+                    
+                    setTimeout(function () {
+                        pressIndicator.style.backgroundColor = '#f0f0f0';
+                    }, 200);
+                });
+            }
+
+            function updateScore() {
+                scoreDisplay.innerText = 'Score: ' + score;
+            }
+
+            function increaseFallingSpeed() {
+                fallingSpeed -= 100; // This increase the speed of each letter picked
+            }
+
+            function updateTimer() {
+                timerDisplay.innerText = 'Time: ' + gameDuration;
+            }
+
+            function endGame() {
+                clearInterval(timer);
+                alert('Game Over! Your final score is: ' + score);
+            }
+
+            // This will create falling letters at regular intervals
+            setInterval(createFallingLetter, frequency);
+
+          
+            timer = setInterval(function () {
+                gameDuration--;
+                updateTimer();
+
+                if (gameDuration <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
